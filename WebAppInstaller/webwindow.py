@@ -33,6 +33,7 @@ class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
         self.setWindowIcon(icon)
         self.web_view = QWebEngineView()
         self.centralWidget().layout().addWidget(self.web_view)
+        self.web_view.titleChanged.connect(lambda title: self.setWindowTitle(title))
 
         self.page = MyWebPage()
         self.page.setUrl(QUrl(url))
