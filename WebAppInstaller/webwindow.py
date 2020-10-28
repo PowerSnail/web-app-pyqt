@@ -28,7 +28,7 @@ class MyWebPage(QWebEnginePage):
 
 
 class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
-    def __init__(self, url: str, icon: QIcon):
+    def __init__(self, url: str, home_url: str, icon: QIcon):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(icon)
@@ -36,7 +36,7 @@ class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
         self.centralWidget().layout().addWidget(self.web_view)
         self.web_view.titleChanged.connect(lambda title: self.setWindowTitle(title))
 
-        self.profile = QWebEngineProfile(QApplication.instance().applicationName())
+        self.profile = QWebEngineProfile(QApplication.instance().applicationName(), parent=self)
         self.profile.setHttpUserAgent(useragents_workarounds.CHROME_UA_STRING)
         self.page = MyWebPage(self.profile)
         self.page.setUrl(QUrl(url))
@@ -44,3 +44,8 @@ class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
         setting = self.web_view.settings()
         setting.setAttribute(QWebEngineSettings.JavascriptCanOpenWindows, True)
         self.web_view.show()
+
+        self._home_url = QUrl(home_url)
+        self.actionHome.triggered.connect(lambda: self.page.setUrl(self._home_url))
+        self.actionBack.triggered.connect(lambda: self.page.triggerAction(self.page.Back))
+        self.actionNext.triggered.connect(lambda: self.page.triggerAction(self.page.Forward))

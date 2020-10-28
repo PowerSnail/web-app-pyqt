@@ -25,7 +25,19 @@ class Ui_WebWindow(object):
         self.menubar = QtWidgets.QMenuBar(WebWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 30))
         self.menubar.setObjectName("menubar")
+        self.menuFile = QtWidgets.QMenu(self.menubar)
+        self.menuFile.setObjectName("menuFile")
         WebWindow.setMenuBar(self.menubar)
+        self.actionHome = QtWidgets.QAction(WebWindow)
+        self.actionHome.setObjectName("actionHome")
+        self.actionBack = QtWidgets.QAction(WebWindow)
+        self.actionBack.setObjectName("actionBack")
+        self.actionNext = QtWidgets.QAction(WebWindow)
+        self.actionNext.setObjectName("actionNext")
+        self.menuFile.addAction(self.actionHome)
+        self.menuFile.addAction(self.actionBack)
+        self.menuFile.addAction(self.actionNext)
+        self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(WebWindow)
         QtCore.QMetaObject.connectSlotsByName(WebWindow)
@@ -33,3 +45,7 @@ class Ui_WebWindow(object):
     def retranslateUi(self, WebWindow):
         _translate = QtCore.QCoreApplication.translate
         WebWindow.setWindowTitle(_translate("WebWindow", "MainWindow"))
+        self.menuFile.setTitle(_translate("WebWindow", "File"))
+        self.actionHome.setText(_translate("WebWindow", "Home"))
+        self.actionBack.setText(_translate("WebWindow", "Back"))
+        self.actionNext.setText(_translate("WebWindow", "Next"))
