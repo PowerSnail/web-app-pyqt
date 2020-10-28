@@ -37,7 +37,7 @@ class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
         self.web_view.titleChanged.connect(lambda title: self.setWindowTitle(title))
 
         self.profile = QWebEngineProfile(QApplication.instance().applicationName())
-        self.profile.setHttpUserAgent(useragents_workarounds.FIREFOX_UA_STRING)
+        self.profile.setHttpUserAgent(useragents_workarounds.CHROME_UA_STRING)
         self.page = MyWebPage(self.profile)
         self.page.setUrl(QUrl(url))
         self.web_view.setPage(self.page)
