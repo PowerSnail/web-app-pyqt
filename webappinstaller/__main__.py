@@ -2,7 +2,7 @@ import fire
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
 
-from . import main_window, webwindow
+from . import main_window, webwindow, useragents_workarounds
 import json
 import pathlib
 import appdirs
@@ -34,7 +34,12 @@ def _save_cache(appname, **kwargs):
         json.dump(kwargs, file)
 
 
-def app(name, url, open_last_url=False, icon_name=None, desktop_file=None):
+def app(name, url, open_last_url=False, icon_name=None, desktop_file=None, ua="chrome"):
+    ua = {
+        "chrome": useragents_workarounds.CHROME_UA_STRING,
+        "firefox": useragents_workarounds.FIREFOX_UA_STRING
+    }[ua]
+
     app = QApplication([name])
     cache = _get_cache(name)
 
@@ -44,7 +49,7 @@ def app(name, url, open_last_url=False, icon_name=None, desktop_file=None):
     app.setWindowIcon(icon)
     app.setDesktopFileName(name)
     
-    w = webwindow.WebWindow(url=cache.get("last_url", url), home_url=url, icon=icon)
+    w = webwindow.WebWindow(url=cache.get("last_url", url), home_url=url, icon=icon, ua=ua)
     w.show()
     result = app.exec()
 

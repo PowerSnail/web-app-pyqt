@@ -5,7 +5,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile, QWebEngineSettings, QWebEngineView
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
-from . import ui_webwindow, useragents_workarounds
+from . import ui_webwindow
 
 
 class NewPageHandler(QWebEnginePage):
@@ -28,7 +28,7 @@ class MyWebPage(QWebEnginePage):
 
 
 class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
-    def __init__(self, url: str, home_url: str, icon: QIcon):
+    def __init__(self, url: str, home_url: str, icon: QIcon, ua: str):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(icon)
@@ -37,7 +37,7 @@ class WebWindow(QMainWindow, ui_webwindow.Ui_WebWindow):
         self.web_view.titleChanged.connect(lambda title: self.setWindowTitle(title))
 
         self.profile = QWebEngineProfile(QApplication.instance().applicationName(), parent=self)
-        self.profile.setHttpUserAgent(useragents_workarounds.CHROME_UA_STRING)
+        self.profile.setHttpUserAgent(ua)
         self.page = MyWebPage(self.profile)
         self.page.setUrl(QUrl(url))
         self.web_view.setPage(self.page)
