@@ -54,7 +54,7 @@ def app(name, url, open_last_url=False, icon_name=None, desktop_file=None, ua="c
         w.showMaximized()
     else:
         screen_size = w.screen().availableGeometry()
-        w.resize(screen_size.width() * 2 / 3, screen_size.height() * 2 / 3)
+        w.resize(screen_size.width() * 2 // 3, screen_size.height() * 2 // 3)
         w.show()
     result = app.exec()
 
