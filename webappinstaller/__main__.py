@@ -1,64 +1,90 @@
-import fire
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
-
-from . import main_window, webwindow, useragents_workarounds
+from contextlib import contextmanager
 import json
 import pathlib
+
 import appdirs
+import typer
+import typing as t
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QUrl
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import QMargins
+
+from webappinstaller import useragents, webwindow
 
 
-def config():
-    app = QApplication(["WebAppInstaller"])
-    w = main_window.MainWindow()
-    w.show()
-    return app.exec()
-
-
-def _get_cache(appname):
+@contextmanager
+def session_cache(appname):
+    cache = {}
     cache_dir = pathlib.Path(appdirs.user_cache_dir(appname))
     cache_path = cache_dir / "cache.json"
-    if not cache_path.exists():
-        return {}
-    else:
+
+    if cache_path.exists():
         with open(cache_path) as file:
-            return json.load(file)
+            cache |= json.load(file)
 
+    yield cache
 
-def _save_cache(appname, **kwargs):
-    cache_dir = pathlib.Path(appdirs.user_cache_dir(appname))
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    
-    cache_path = cache_dir / "cache.json"
     with open(cache_path, "w") as file:
-        json.dump(kwargs, file)
+        json.dump(cache, file)
 
 
-def app(name, url, open_last_url=False, icon_name=None, desktop_file=None, ua="chrome", maximized=False):
-    ua = {
-        "chrome": useragents_workarounds.CHROME_UA_STRING,
-        "firefox": useragents_workarounds.FIREFOX_UA_STRING
-    }[ua]
-
+def setup_app(name: str, desktop_file: t.Optional[str], icon_name: t.Optional[str]):
     app = QApplication([name])
-    cache = _get_cache(name)
-
-    icon = QIcon.fromTheme(icon_name)
-    if not icon:
-        icon = QIcon.fromTheme("internet-web-browser")
+    app.setDesktopFileName(desktop_file)
+    icon = QIcon.fromTheme(icon_name) or QIcon.fromTheme("internet-web-browser")
     app.setWindowIcon(icon)
     app.setDesktopFileName(name)
-    
-    w = webwindow.WebWindow(url=cache.get("last_url", url), home_url=url, icon=icon, ua=ua)
-    if maximized:
-        w.showMaximized()
-    else:
-        screen_size = w.screen().availableGeometry()
-        w.resize(screen_size.width() * 2 // 3, screen_size.height() * 2 // 3)
-        w.show()
-    result = app.exec()
-
-    _save_cache(name, last_url=w.page.url().toString())
+    return app
 
 
-fire.Fire()
+def centered_rectangle(screen):
+    screen_size = screen.availableGeometry()
+    x_margin = screen_size.width() // 6
+    y_margin = screen_size.height() // 6
+    return screen_size.marginsRemoved(QMargins(x_margin, y_margin, x_margin, y_margin))
+
+
+def main(
+    name,
+    url,
+    open_last_url: bool = False,
+    icon_name: t.Optional[str] = None,
+    desktop_file: t.Optional[str] = None,
+    ua: str = "chrome",
+    maximized: bool = False,
+):
+    app = setup_app(name, desktop_file, icon_name)
+
+    with session_cache(name) as cache:
+        home_url = url
+        current_url = url
+
+        if open_last_url and (last_url := cache.get("last_url")):
+            current_url = last_url
+
+        typer.echo(current_url)
+        w = webwindow.WebWindow(
+            url=current_url,
+            home_url=home_url,
+            icon=app.windowIcon(),
+            ua=useragents.UA_STRINGS[ua],
+        )
+
+        def set_url(url: QUrl):
+            cache["last_url"] = url.url()
+
+        w.url_changed.connect(set_url)
+
+        w.setGeometry(centered_rectangle(w.screen()))
+
+        if maximized:
+            w.showMaximized()
+        else:
+            w.show()
+
+        return app.exec()
+
+
+if __name__ == "__main__":
+    typer.run(main)

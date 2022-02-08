@@ -1,9 +1,10 @@
 import functools
 from typing import Any, Dict
 
-import fire
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import QAction, QApplication, QWidget
+import typer
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QApplication, QWidget
 
 _qt_enum_types: Dict[Any, Any] = {}
 
@@ -25,7 +26,7 @@ def enum_type(const, namespace=Qt) -> str:
 
 
 def print_children_widget(filename: str):
-    from PyQt5 import uic
+    from PyQt6 import uic
 
     app = QApplication([])
     ui = uic.loadUi(filename)
@@ -49,7 +50,7 @@ def compile_uis(dir: str = None):
     failed = []
     for ui_file in ui_files:
         out_filename = ui_file.with_name("ui_" + ui_file.name).with_suffix(".py")
-        result = sp.run(["pyuic5", str(ui_file), "-o", str(out_filename)])
+        result = sp.run(["pyuic6", str(ui_file), "-o", str(out_filename)])
         if result.returncode != 0:
             failed.append(ui_file)
 
@@ -69,7 +70,7 @@ def compile_resource(resource_file=None, output_file=None):
     if output_file is None:
         output_file = pathlib.Path(__file__).parent / "resource.py"
 
-    result = sp.run(["pyrcc5", str(resource_file), "-o", str(output_file)])
+    result = sp.run(["pyrcc6", str(resource_file), "-o", str(output_file)])
     if result.returncode != 0:
         print("Failed")
     else:
@@ -77,6 +78,7 @@ def compile_resource(resource_file=None, output_file=None):
 
 
 if __name__ == "__main__":
-    fire.Fire(
-        {"print-children-widget": print_children_widget, "compile_uis": compile_uis}
-    )
+    app = typer.Typer()
+    app.command()(print_children_widget)
+    app.command()(compile_uis)
+    app()

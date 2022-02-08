@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "pyqt",
+        "pyrcc",
+        "pyuic",
+        "rglob",
+        "typer"
+    ],
+    "python.formatting.provider": "black"
+}
